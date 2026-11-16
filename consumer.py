@@ -1,57 +1,43 @@
-"""
-consumer.py
-----------------
-This file contains the logic for a Consumer that continuously reads messages
-from the queue and processes them.
-
-The Consumer runs forever, just like a streaming system.
-"""
 
 import time
 from queue import Queue
 
+
 class Consumer:
     def __init__(self, q):
-        """
-        PARAMETERS:
-        - q : the shared queue (simulated topic)
-
-        TODO:
-        - Store the queue.
-        - Initialize any state variables you may want later,
-          e.g. a running total for stateful computations.
-        """
-        
+        self.q = q
+        self.total_amount = 0.0
 
     def start(self):
-        """
-        Main loop of the consumer.
+        while True:
+            event = self.q.get()
 
-        TODO:
-        - Continuously call q.get() to receive events.
-        - Print the event received.
-        - Pass it to the process() function.
-        """
-    
+            # Stop signal from producer
+            if event is None:
+                self.q.task_done()
+                break
+
+            print(f"[Consumer] Received: {event}")
+            self.process(event)
+
+            self.q.task_done()
 
     def process(self, event):
-        """
-        TODO:
-        - Simulate some processing time using time.sleep().
-        - Transform fields (e.g., convert amount to float).
-        - Implement optional filtering conditions.
-        - Update any state (example: running total).
-        """
-   
+        time.sleep(0.5)
 
-# Debugging test
+        amount = float(event["amount"])
+        self.total_amount += amount
+
+        print(
+            f"[Consumer] Processed transaction: "
+            f"{event['transaction_id']} | "
+            f"Amount: {amount:.2f} | "
+            f"Running total: {self.total_amount:.2f}"
+        )
+
 
 if __name__ == "__main__":
-    """
-    Run this alone to see consumer behavior.
-
-    Note: It will block waiting for messages since no producer is running.
-    """
     q = Queue()
     consumer = Consumer(q)
     consumer.start()
+
